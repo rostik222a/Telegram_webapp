@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Telegram Web App</title>
+    <!-- 1. Crucial: Include the Telegram WebApp script -->
+    <script src="https://telegram.org"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; background: #0088cc; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Hello, Telegram!</h1>
+    <button id="sendDataBtn">Send Data to Bot</button>
+
+    <script>
+        // 2. Initialize the Telegram WebApp object
+        const tg = window.Telegram.WebApp;
+        tg.ready(); // Tell Telegram the app is ready to display
+
+        // 3. Send data back to Python when button is clicked
+        document.getElementById('sendDataBtn').addEventListener('click', () => {
+            const data = { message: "Hello from the frontend!" };
+            tg.sendData(JSON.stringify(data)); // Sends string data back to the bot
+            tg.close(); // Closes the Web App window
+        });
+    </script>
+</body>
