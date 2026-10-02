@@ -1,30 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Telegram Web App</title>
-    <!-- 1. Crucial: Include the Telegram WebApp script -->
-    <script src="https://telegram.org"></script>
+
+    <title>Морской бой</title>
+
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        button { padding: 10px 20px; font-size: 16px; background: #0088cc; color: white; border: none; border-radius: 5px; }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #555;
+            background-color: #9cc9e8;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .cell:hover {
+            filter: brightness(0.9);
+        }
+
+        .miss {
+            background-color: #78acd0;
+            color: white;
+        }
+
+        .hit {
+            background-color: #d98282;
+            color: white;
+        }
+
+        #status {
+            margin-bottom: 15px;
+        }
+
+        #reset {
+            margin-bottom: 15px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
     </style>
 </head>
+
 <body>
-    <h1>Hello, Telegram!</h1>
-    <button id="sendDataBtn">Send Data to Bot</button>
+
+    <h1>Морской бой</h1>
+
+    <div id="status">
+        Нажми на клетку, чтобы сделать выстрел
+    </div>
+
+    <button id="reset" type="button">
+        Сбросить
+    </button>
+
+    <div id="board"></div>
+
 
     <script>
-        // 2. Initialize the Telegram WebApp object
-        const tg = window.Telegram.WebApp;
-        tg.ready(); // Tell Telegram the app is ready to display
+        const board = document.getElementById("board");
+        const status = document.getElementById("status");
+        const reset = document.getElementById("reset");
 
-        // 3. Send data back to Python when button is clicked
-        document.getElementById('sendDataBtn').addEventListener('click', () => {
-            const data = { message: "Hello from the frontend!" };
-            tg.sendData(JSON.stringify(data)); // Sends string data back to the bot
-            tg.close(); // Closes the Web App window
+        const shots = new Set();
+
+
+        function createBoard() {
+
+            board.innerHTML = "";
+            shots.clear();
+
+            for (let row = 0; row < 10; row++) {
+
+                for (let col = 0; col < 10; col++) {
+
+                    const cell = document.createElement("button");
+
+                    cell.className = "cell";
+
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    cell.addEventListener("click", function() {
+
+                        const key = `${row}-${col}`;
+
+                        // Если по этой клетке уже стреляли
+                        if (shots.has(key)) {
+                            return;
+                        }
+
+                        // Запоминаем выстрел
+                        shots.add(key);
+
+                        // Меняем внешний вид клетки
+                        cell.classList.add("miss");
+
+                        // Показываем точку
+                        cell.textContent = "•";
+
+                        // Показываем координаты
+                        status.textContent =
+                            `Выстрел: строка ${row + 1}, столбец ${col + 1}`;
+                    });
+
+                    board.appendChild(cell);
+                }
+            }
+        }
+
+
+        reset.addEventListener("click", function() {
+
+            createBoard();
+
+            status.textContent =
+                "Нажми на клетку, чтобы сделать выстрел";
         });
+
+
+        // Создаём поле при запуске
+        createBoard();
     </script>
+
 </body>
+</html>
