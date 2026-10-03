@@ -1,0 +1,46 @@
+body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #555;
+            background-color: #9cc9e8;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .cell:hover {
+            filter: brightness(0.9);
+        }
+
+        .miss {
+            background-color: #78acd0;
+            color: white;
+        }
+
+        .hit {
+            background-color: #d98282;
+            color: white;
+        }
+
+        #status {
+            margin-bottom: 15px;
+        }
+
+        #reset {
+            margin-bottom: 15px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
