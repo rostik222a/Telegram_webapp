@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../Telegram_webapp/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
+
     <title>Морской бой</title>
-
-
 </head>
 
 <body>
 
     <h1>Морской бой</h1>
-    <h1>test</h1>
-    <div id="status">
+    <div id="info">
         Нажми на клетку, чтобы сделать выстрел
     </div>
 
@@ -23,72 +21,6 @@
 
     <div id="board"></div>
 
-
-    <script>
-        const board = document.getElementById("board");
-        const status = document.getElementById("status");
-        const reset = document.getElementById("reset");
-
-        const shots = new Set();
-
-
-        function createBoard() {
-
-            board.innerHTML = "";
-            shots.clear();
-
-            for (let row = 0; row < 10; row++) {
-
-                for (let col = 0; col < 10; col++) {
-
-                    const cell = document.createElement("button");
-
-                    cell.className = "cell";
-
-                    cell.dataset.row = row;
-                    cell.dataset.col = col;
-
-                    cell.addEventListener("click", function() {
-
-                        const key = `${row}-${col}`;
-
-                        // Если по этой клетке уже стреляли
-                        if (shots.has(key)) {
-                            return;
-                        }
-
-                        // Запоминаем выстрел
-                        shots.add(key);
-
-                        // Меняем внешний вид клетки
-                        cell.classList.add("miss");
-
-                        // Показываем точку
-                        cell.textContent = "•";
-
-                        // Показываем координаты
-                        status.textContent =
-                            `Выстрел: строка ${row + 1}, столбец ${col + 1}`;
-                    });
-
-                    board.appendChild(cell);
-                }
-            }
-        }
-
-
-        reset.addEventListener("click", function() {
-
-            createBoard();
-
-            status.textContent =
-                "Нажми на клетку, чтобы сделать выстрел";
-        });
-
-
-        // Создаём поле при запуске
-        createBoard();
-    </script>
-
+    <script src="javascript/main.js"></script>
 </body>
 </html>
