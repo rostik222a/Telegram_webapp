@@ -2,25 +2,22 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
-
-    <title>Морской бой</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Морской Бой TMA</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
-
 <body>
+    <div class="game-container">
+        <h1>Морской Бой</h1>
 
-    <h1>Морской бой</h1>
-    <div id="info">
-        Нажми на клетку, чтобы сделать выстрел
+        <!-- Сетка игрового поля -->
+        <div id="battlefield-ui" class="grid-field"></div>
+
+        <button id="regen-btn" class="btn" type="button">Перезапустить флот</button>
     </div>
 
-    <button id="reset" type="button">
-        Сбросить
-    </button>
-
-    <div id="board"></div>
-
-    <script src="javascript/main.js"></script>
+    <!-- Подключаем ваш логический файл и файл управления интерфейсом -->
+    <script src="/javascript/main.js"></script>
+    <script src="/javascript/app.js"></script>
 </body>
 </html>

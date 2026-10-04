@@ -1,46 +1,56 @@
 body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 30px;
-        }
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background-color: #1c1c1e; /* Темная тема в стиле Telegram */
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
-        #board {
-            display: grid;
-            grid-template-columns: repeat(10, 40px);
-            grid-template-rows: repeat(10, 40px);
-        }
+.game-container {
+    text-align: center;
+    width: 100%;
+    max-width: 400px; /* Ограничение под мобильный экран */
+    padding: 10px;
+    box-sizing: border-box;
+}
 
-        .cell {
-            width: 40px;
-            height: 40px;
-            border: 1px solid #555;
-            background-color: #9cc9e8;
-            cursor: pointer;
-            font-size: 20px;
-        }
+/* Сетка поля 10 на 10 */
+.grid-field {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    gap: 2px;
+    background-color: #444;
+    border: 3px solid #444;
+    border-radius: 8px;
+    aspect-ratio: 1 / 1; /* Чтобы поле всегда оставалось строго квадратным */
+    margin-bottom: 20px;
+}
 
-        .cell:hover {
-            filter: brightness(0.9);
-        }
+/* Оформление ячеек */
+.cell {
+    background-color: #2c2c2e;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
 
-        .miss {
-            background-color: #78acd0;
-            color: white;
-        }
+/* Стили состояний (привяжем их к классам в JS) */
+.cell.ship { background-color: #3a3a3c; } /* Видим свои корабли (для теста) */
+.cell.miss { background-color: #10599c; position: relative; } 
+.cell.miss::after { /* Точка в центре при промахе */
+    content: ''; position: absolute; top: 40%; left: 40%; width: 20%; height: 20%;
+    background-color: #54a0ff; border-radius: 50%;
+}
+.cell.hit  { background-color: #ff3b30; } /* Ранили */
+.cell.killed { background-color: #8e8e93; } /* Убили */
 
-        .hit {
-            background-color: #d98282;
-            color: white;
-        }
-
-        #info {
-            margin-bottom: 15px;
-        }
-
-        #reset {
-            margin-bottom: 15px;
-            padding: 8px 15px;
-            cursor: pointer;
-        }
+.btn {
+    background-color: #007aff; /* Синяя кнопка Telegram */
+    color: white; border: none; padding: 12px 24px;
+    font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%;
+}
+.btn:active { background-color: #0056b3; }
