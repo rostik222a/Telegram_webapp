@@ -1,44 +1,39 @@
-const playerField =
-    new Battlefield();
-
-const enemyField =
-    new Battlefield();
-
+const playerField = new Battlefield();
+const enemyField = new Battlefield();
 
 /* ==========================================
-   DOM
+DOM
 ========================================== */
 
 const playerContainer =
-    document.getElementById("player-field");
+document.getElementById("player-field");
 
 const enemyContainer =
-    document.getElementById("enemy-field");
+document.getElementById("enemy-field");
 
 const statusElement =
-    document.getElementById("game-status");
+document.getElementById("game-status");
 
 const setupPanel =
-    document.getElementById("setup-panel");
+document.getElementById("setup-panel");
 
 const rotateBtn =
-    document.getElementById("rotate-btn");
+document.getElementById("rotate-btn");
 
 const randomBtn =
-    document.getElementById("random-btn");
+document.getElementById("random-btn");
 
 const startBtn =
-    document.getElementById("start-btn");
+document.getElementById("start-btn");
 
 const newGameBtn =
-    document.getElementById("new-game-btn");
+document.getElementById("new-game-btn");
 
 const resultMessage =
-    document.getElementById("result-message");
-
+document.getElementById("result-message");
 
 /* ==========================================
-   СОСТОЯНИЕ ИГРЫ
+СОСТОЯНИЕ ИГРЫ
 ========================================== */
 
 let gameState = "setup";
@@ -49,440 +44,564 @@ let selectedShipIndex = 0;
 
 let playerShipsPlaced = [];
 
+/* ==========================================
+СОСТОЯНИЕ ИИ
+========================================== */
 
 /*
- * Все клетки, по которым ИИ может стрелять.
- */
 
-let aiAvailableShots = [];
-
+* Клетки, которые ИИ ещё может проверить.
+  */
+  let aiAvailableShots = [];
 
 /*
- * Клетки, которые ИИ хочет проверить
- * после попадания.
- */
 
-let aiTargetQueue = [];
+* Попадания по текущему кораблю.
+* 
+* Например:
+* 
+* [
+* { x: 3, y: 5 },
+* { x: 4, y: 5 }
+* ]
+  */
+  let aiHits = [];
 
+/*
+
+* Направление текущего корабля:
+* 
+* null — пока неизвестно
+* H    — горизонтально
+* V    — вертикально
+  */
+  let aiDirection = null;
+
+/*
+
+* Направление, в котором ИИ сейчас
+* пытается продолжить уничтожение корабля.
+* 
+* 1  — вправо / вниз
+* -1 — влево / вверх
+  */
+  let aiSearchDirection = 1;
+
+/*
+
+* Режим ИИ:
+* 
+* HUNT   — ищем новый корабль
+* TARGET — добиваем найденный корабль
+  */
+  let aiMode = "HUNT";
 
 /* ==========================================
-   СЛУЧАЙНАЯ РАССТАНОВКА ИГРОКА
+СЛУЧАЙНАЯ РАССТАНОВКА ИГРОКА
 ========================================== */
 
 function randomizePlayerFleet() {
 
-    playerField.generateRandomFleet();
+playerField.generateRandomFleet();
 
-    playerShipsPlaced =
-        [...SHIP_SIZES];
+playerShipsPlaced = [...SHIP_SIZES];
 
-    selectedShipIndex =
-        SHIP_SIZES.length;
+selectedShipIndex = SHIP_SIZES.length;
 
+startBtn.disabled = false;
 
-    startBtn.disabled = false;
+statusElement.textContent =
+    "Флот готов. Можно начинать игру.";
 
-    statusElement.textContent =
-        "Флот готов. Можно начинать игру.";
+renderPlayerField();
 
-    renderPlayerField();
 }
 
-
 /* ==========================================
-   ПОДГОТОВКА ИГРОКА
+ПОДГОТОВКА ИГРОКА
 ========================================== */
 
 function resetSetup() {
 
-    playerField.reset();
+playerField.reset();
 
-    selectedShipIndex = 0;
+selectedShipIndex = 0;
 
-    playerShipsPlaced = [];
+playerShipsPlaced = [];
 
-    playerDirection = "H";
+playerDirection = "H";
 
-    gameState = "setup";
+gameState = "setup";
 
-    startBtn.disabled = true;
+startBtn.disabled = true;
 
-    setupPanel.classList.remove("hidden");
+setupPanel.classList.remove("hidden");
 
-    resultMessage.classList.add("hidden");
+resultMessage.classList.add("hidden");
 
-    statusElement.textContent =
-        "Разместите свои корабли.";
+statusElement.textContent =
+    "Разместите свои корабли.";
 
-    renderPlayerField();
+renderPlayerField();
 
-    renderEnemyField();
+renderEnemyField();
+
 }
 
-
-/*
- * Ручная установка кораблей.
- */
+/* ==========================================
+РУЧНАЯ УСТАНОВКА КОРАБЛЯ
+========================================== */
 
 function tryPlacePlayerShip(x, y) {
 
-    if (
-        selectedShipIndex >=
-        SHIP_SIZES.length
-    ) {
-        return;
-    }
-
-
-    const size =
-        SHIP_SIZES[selectedShipIndex];
-
-
-    const placed =
-        playerField.placeShip(
-            x,
-            y,
-            size,
-            playerDirection
-        );
-
-
-    if (!placed) {
-
-        statusElement.textContent =
-            "Сюда поставить корабль нельзя.";
-
-        return;
-    }
-
-
-    playerShipsPlaced.push(size);
-
-    selectedShipIndex++;
-
-
-    if (
-        selectedShipIndex >=
-        SHIP_SIZES.length
-    ) {
-
-        startBtn.disabled = false;
-
-        statusElement.textContent =
-            "Все корабли размещены. Начинайте игру.";
-
-    } else {
-
-        statusElement.textContent =
-            `Разместите корабль длиной ${
-                SHIP_SIZES[selectedShipIndex]
-            }.`;
-    }
-
-
-    renderPlayerField();
+if (
+    selectedShipIndex >=
+    SHIP_SIZES.length
+) {
+    return;
 }
 
 
+const size =
+    SHIP_SIZES[selectedShipIndex];
+
+
+const placed =
+    playerField.placeShip(
+        x,
+        y,
+        size,
+        playerDirection
+    );
+
+
+if (!placed) {
+
+    statusElement.textContent =
+        "Сюда поставить корабль нельзя.";
+
+    return;
+}
+
+
+playerShipsPlaced.push(size);
+
+selectedShipIndex++;
+
+
+if (
+    selectedShipIndex >=
+    SHIP_SIZES.length
+) {
+
+    startBtn.disabled = false;
+
+    statusElement.textContent =
+        "Все корабли размещены. Начинайте игру.";
+
+} else {
+
+    statusElement.textContent =
+        `Разместите корабль длиной ${
+            SHIP_SIZES[selectedShipIndex]
+        }.`;
+}
+
+
+renderPlayerField();
+
+}
+
 /* ==========================================
-   ПОВОРОТ
+ПОВОРОТ КОРАБЛЯ
 ========================================== */
 
 rotateBtn.addEventListener(
-    "click",
-    () => {
+"click",
+() => {
 
-        playerDirection =
-            playerDirection === "H"
-                ? "V"
-                : "H";
-
-
-        statusElement.textContent =
-            `Направление: ${
-                playerDirection === "H"
-                    ? "горизонтально"
-                    : "вертикально"
-            }`;
+    if (gameState !== "setup") {
+        return;
     }
+
+
+    playerDirection =
+        playerDirection === "H"
+            ? "V"
+            : "H";
+
+
+    statusElement.textContent =
+        `Направление: ${
+            playerDirection === "H"
+                ? "горизонтально"
+                : "вертикально"
+        }`;
+}
+
 );
 
-
 /* ==========================================
-   СЛУЧАЙНАЯ РАССТАНОВКА
+СЛУЧАЙНАЯ РАССТАНОВКА
 ========================================== */
 
 randomBtn.addEventListener(
-    "click",
-    randomizePlayerFleet
+"click",
+() => {
+
+    if (gameState !== "setup") {
+        return;
+    }
+
+
+    randomizePlayerFleet();
+}
+
 );
 
-
 /* ==========================================
-   ОТРИСОВКА ИГРОВОГО ПОЛЯ
+ОТРИСОВКА ПОЛЕЙ
 ========================================== */
 
 function renderPlayerField() {
 
-    renderField(
-        playerContainer,
-        playerField,
-        true
-    );
-}
+renderField(
+    playerContainer,
+    playerField,
+    true
+);
 
+}
 
 function renderEnemyField() {
 
-    renderField(
-        enemyContainer,
-        enemyField,
-        false
-    );
+renderField(
+    enemyContainer,
+    enemyField,
+    false
+);
+
 }
 
-
 function renderField(
-    container,
-    battlefield,
-    showShips
+container,
+battlefield,
+showShips
 ) {
 
-    container.innerHTML = "";
+container.innerHTML = "";
 
+
+for (
+    let y = 0;
+    y < FIELD_SIZE;
+    y++
+) {
 
     for (
-        let y = 0;
-        y < FIELD_SIZE;
-        y++
+        let x = 0;
+        x < FIELD_SIZE;
+        x++
     ) {
 
-        for (
-            let x = 0;
-            x < FIELD_SIZE;
-            x++
+        const cell =
+            document.createElement("div");
+
+
+        cell.classList.add("cell");
+
+
+        const state =
+            battlefield.grid[y][x];
+
+
+        /*
+         * Корабли игрока показываем.
+         *
+         * Корабли ИИ скрываем до конца игры.
+         */
+
+        if (
+            state === CELL_SHIP &&
+            showShips
         ) {
 
-            const cell =
-                document.createElement("div");
-
-
-            cell.classList.add("cell");
-
-
-            const state =
-                battlefield.grid[y][x];
-
-
-            /*
-             * Корабли игрока видны.
-             *
-             * Корабли врага скрыты.
-             */
-
-            if (
-                state === CELL_SHIP &&
-                showShips
-            ) {
-
-                cell.classList.add("ship");
-            }
-
-
-            if (
-                state === CELL_MISS
-            ) {
-
-                cell.classList.add("miss");
-            }
-
-
-            if (
-                state === CELL_HIT
-            ) {
-
-                cell.classList.add("hit");
-            }
-
-
-            cell.dataset.x = x;
-            cell.dataset.y = y;
-
-
-            if (
-                container === playerContainer
-            ) {
-
-                cell.addEventListener(
-                    "click",
-                    () =>
-                        handlePlayerCellClick(
-                            x,
-                            y
-                        )
-                );
-
-            } else {
-
-                cell.addEventListener(
-                    "click",
-                    () =>
-                        handlePlayerShot(
-                            x,
-                            y
-                        )
-                );
-            }
-
-
-            container.appendChild(cell);
+            cell.classList.add("ship");
         }
+
+
+        if (
+            state === CELL_MISS
+        ) {
+
+            cell.classList.add("miss");
+        }
+
+
+        if (
+            state === CELL_HIT
+        ) {
+
+            cell.classList.add("hit");
+        }
+
+
+        cell.dataset.x = x;
+
+        cell.dataset.y = y;
+
+
+        if (
+            container === playerContainer
+        ) {
+
+            cell.addEventListener(
+                "click",
+                () =>
+                    handlePlayerCellClick(
+                        x,
+                        y
+                    )
+            );
+
+        } else {
+
+            cell.addEventListener(
+                "click",
+                () =>
+                    handlePlayerShot(
+                        x,
+                        y
+                    )
+            );
+        }
+
+
+        container.appendChild(cell);
     }
 }
 
+}
 
 /* ==========================================
-   ИГРОК СТРЕЛЯЕТ
+ИГРОК СТРЕЛЯЕТ
 ========================================== */
 
 function handlePlayerShot(x, y) {
 
-    if (gameState !== "player") {
-        return;
-    }
-
-
-    const result =
-        enemyField.receiveShot(x, y);
-
-
-    if (
-        result.result === "already_shot"
-    ) {
-
-        return;
-    }
-
-
-    if (
-        result.result === "invalid"
-    ) {
-
-        return;
-    }
-
-
-    renderEnemyField();
-
-
-    if (
-        result.result === "miss"
-    ) {
-
-        statusElement.textContent =
-            "Мимо! Ход противника.";
-
-        gameState = "ai";
-
-        setTimeout(
-            aiTurn,
-            600
-        );
-
-        return;
-    }
-
-
-    if (
-        result.result === "hit"
-    ) {
-
-        statusElement.textContent =
-            "Попадание! Стреляйте ещё.";
-
-        /*
-         * При попадании игрок получает
-         * ещё один ход.
-         */
-
-        return;
-    }
-
-
-    if (
-        result.result === "killed"
-    ) {
-
-        statusElement.textContent =
-            "Корабль уничтожен! Стреляйте ещё.";
-
-
-        if (
-            enemyField.allShipsKilled()
-        ) {
-
-            endGame(true);
-
-            return;
-        }
-    }
+if (
+    gameState !== "player"
+) {
+    return;
 }
 
 
+const result =
+    enemyField.receiveShot(
+        x,
+        y
+    );
+
+
+if (
+    result.result ===
+    "already_shot"
+) {
+
+    return;
+}
+
+
+if (
+    result.result ===
+    "invalid"
+) {
+
+    return;
+}
+
+
+renderEnemyField();
+
+
+/* =========================
+   ПРОМАХ
+========================= */
+
+if (
+    result.result === "miss"
+) {
+
+    statusElement.textContent =
+        "Мимо! ИИ готовится стрелять.";
+
+    gameState = "ai";
+
+
+    setTimeout(
+        aiTurn,
+        getRandomAiDelay()
+    );
+
+
+    return;
+}
+
+
+/* =========================
+   ПОПАДАНИЕ
+========================= */
+
+if (
+    result.result === "hit"
+) {
+
+    statusElement.textContent =
+        "Попадание! Стреляйте ещё.";
+
+    return;
+}
+
+
+/* =========================
+   УНИЧТОЖЕНИЕ
+========================= */
+
+if (
+    result.result === "killed"
+) {
+
+    statusElement.textContent =
+        "Корабль уничтожен! Стреляйте ещё.";
+
+
+    if (
+        enemyField.allShipsKilled()
+    ) {
+
+        endGame(true);
+
+        return;
+    }
+}
+
+}
+
 /* ==========================================
-   ХОД ИИ
+ЗАДЕРЖКА ИИ
 ========================================== */
 
 function getRandomAiDelay() {
 
-    const minDelay = 700;
-    const maxDelay = 1600;
+const minDelay = 700;
 
-    return Math.floor(
-        Math.random() *
-        (maxDelay - minDelay + 1)
-    ) + minDelay;
+const maxDelay = 1600;
+
+
+return Math.floor(
+    Math.random() *
+    (
+        maxDelay -
+        minDelay +
+        1
+    )
+) + minDelay;
+
 }
+
+/* ==========================================
+ПОДГОТОВКА ИИ
+========================================== */
 
 function prepareAi() {
 
-    aiAvailableShots = [];
+aiAvailableShots = [];
 
-    aiTargetQueue = [];
+aiHits = [];
+
+aiDirection = null;
+
+aiSearchDirection = 1;
+
+aiMode = "HUNT";
+
+
+for (
+    let y = 0;
+    y < FIELD_SIZE;
+    y++
+) {
 
     for (
-        let y = 0;
-        y < FIELD_SIZE;
-        y++
+        let x = 0;
+        x < FIELD_SIZE;
+        x++
     ) {
 
-        for (
-            let x = 0;
-            x < FIELD_SIZE;
-            x++
-        ) {
-
-            aiAvailableShots.push({
-                x,
-                y
-            });
-        }
+        aiAvailableShots.push({
+            x,
+            y
+        });
     }
 }
 
+}
 
-/*
- * Получить случайную доступную клетку.
- */
+/* ==========================================
+ПРОВЕРКА: МОЖНО ЛИ СТРЕЛЯТЬ?
+========================================== */
+
+function isAiCellAvailable(x, y) {
+
+if (
+    !playerField.isValidCoords(
+        x,
+        y
+    )
+) {
+
+    return false;
+}
+
+
+const state =
+    playerField.grid[y][x];
+
+
+return (
+    state === CELL_EMPTY ||
+    state === CELL_SHIP
+);
+
+}
+
+/* ==========================================
+УДАЛЕНИЕ КЛЕТКИ ИЗ ДОСТУПНЫХ
+========================================== */
+
+function removeAiAvailableShot(
+x,
+y
+) {
+
+aiAvailableShots =
+    aiAvailableShots.filter(
+        cell =>
+            cell.x !== x ||
+            cell.y !== y
+    );
+
+}
+
+/* ==========================================
+СЛУЧАЙНЫЙ ВЫСТРЕЛ
+========================================== */
 
 function getRandomAiShot() {
 
-    if (
-        aiAvailableShots.length === 0
-    ) {
-        return null;
-    }
-
+while (
+    aiAvailableShots.length > 0
+) {
 
     const index =
         Math.floor(
@@ -491,465 +610,827 @@ function getRandomAiShot() {
         );
 
 
-    return aiAvailableShots.splice(
-        index,
-        1
-    )[0];
-}
+    const shot =
+        aiAvailableShots.splice(
+            index,
+            1
+        )[0];
 
 
-/*
- * Удаляем клетку из списка доступных.
- */
+    /*
+     * Дополнительная защита:
+     * автоматически отмеченные клетки
+     * никогда не выбираются.
+     */
 
-function removeAiAvailableShot(x, y) {
-
-    aiAvailableShots =
-        aiAvailableShots.filter(
-            cell =>
-                cell.x !== x ||
-                cell.y !== y
-        );
-}
-
-
-/*
- * После попадания добавляем соседние
- * клетки в очередь ИИ.
- */
-
-function addAiTargets(x, y) {
-
-    const directions = [
-        [1, 0],
-        [-1, 0],
-        [0, 1],
-        [0, -1]
-    ];
-
-
-    for (
-        const [dx, dy]
-        of directions
+    if (
+        isAiCellAvailable(
+            shot.x,
+            shot.y
+        )
     ) {
 
-        const nx = x + dx;
-        const ny = y + dy;
-
-
-        if (
-            nx < 0 ||
-            nx >= FIELD_SIZE ||
-            ny < 0 ||
-            ny >= FIELD_SIZE
-        ) {
-            continue;
-        }
-
-
-        const exists =
-            aiTargetQueue.some(
-                cell =>
-                    cell.x === nx &&
-                    cell.y === ny
-            );
-
-
-        if (exists) {
-            continue;
-        }
-
-
-        const available =
-            aiAvailableShots.some(
-                cell =>
-                    cell.x === nx &&
-                    cell.y === ny
-            );
-
-
-        if (available) {
-
-            aiTargetQueue.push({
-                x: nx,
-                y: ny
-            });
-        }
+        return shot;
     }
 }
 
 
-/*
- * Выбираем клетку для ИИ.
- */
+return null;
 
-function chooseAiShot() {
+}
 
-    /*
-     * Сначала пытаемся взять клетку из очереди целей.
-     */
+/* ==========================================
+ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ
+========================================== */
 
-    while (aiTargetQueue.length > 0) {
+function determineAiDirection() {
 
-        const target = aiTargetQueue.shift();
-
-        /*
-         * Проверяем реальное состояние поля игрока.
-         * Если там уже был выстрел — пропускаем клетку.
-         */
-        if (
-            playerField.grid[target.y][target.x] !== CELL_EMPTY &&
-            playerField.grid[target.y][target.x] !== CELL_SHIP
-        ) {
-            continue;
-        }
-
-        removeAiAvailableShot(
-            target.x,
-            target.y
-        );
-
-        return target;
-    }
-
-
-    /*
-     * Если целей нет — выбираем случайную
-     * клетку только из реально доступных.
-     */
-
-    while (aiAvailableShots.length > 0) {
-
-        const index =
-            Math.floor(
-                Math.random() * aiAvailableShots.length
-            );
-
-        const target =
-            aiAvailableShots.splice(index, 1)[0];
-
-
-        /*
-         * Дополнительная защита от уже обстрелянной клетки.
-         */
-
-        const state =
-            playerField.grid[target.y][target.x];
-
-
-        if (
-            state === CELL_EMPTY ||
-            state === CELL_SHIP
-        ) {
-
-            return target;
-        }
-    }
-
+if (
+    aiHits.length < 2
+) {
 
     return null;
 }
 
+
+const first =
+    aiHits[0];
+
+const second =
+    aiHits[1];
+
+
+if (
+    first.y === second.y
+) {
+
+    return "H";
+}
+
+
+if (
+    first.x === second.x
+) {
+
+    return "V";
+}
+
+
+return null;
+
+}
+
 /* ==========================================
-   ХОД ИИ
+ПОИСК СОСЕДНЕЙ КЛЕТКИ
+ПОСЛЕ ПЕРВОГО ПОПАДАНИЯ
+========================================== */
+
+function getFirstHitTargets() {
+
+if (
+    aiHits.length !== 1
+) {
+
+    return [];
+}
+
+
+const hit =
+    aiHits[0];
+
+
+const directions = [
+
+    [1, 0],
+
+    [-1, 0],
+
+    [0, 1],
+
+    [0, -1]
+];
+
+
+const targets = [];
+
+
+for (
+    const [dx, dy]
+    of directions
+) {
+
+    const x =
+        hit.x + dx;
+
+    const y =
+        hit.y + dy;
+
+
+    if (
+        isAiCellAvailable(
+            x,
+            y
+        )
+    ) {
+
+        targets.push({
+            x,
+            y
+        });
+    }
+}
+
+
+return targets;
+
+}
+
+/* ==========================================
+ПОИСК ВДОЛЬ УЖЕ НАЙДЕННОГО КОРАБЛЯ
+========================================== */
+
+function getDirectionalShot() {
+
+if (
+    !aiDirection ||
+    aiHits.length < 2
+) {
+
+    return null;
+}
+
+
+/*
+ * Сортируем попадания.
+ *
+ * Для горизонтального корабля
+ * сортируем по X.
+ *
+ * Для вертикального — по Y.
+ */
+
+const sortedHits =
+    [...aiHits].sort(
+        (a, b) => {
+
+            if (
+                aiDirection === "H"
+            ) {
+
+                return a.x - b.x;
+            }
+
+
+            return a.y - b.y;
+        }
+    );
+
+
+const first =
+    sortedHits[0];
+
+const last =
+    sortedHits[
+        sortedHits.length - 1
+    ];
+
+
+let target = null;
+
+
+/*
+ * =====================================
+ * ГОРИЗОНТАЛЬНЫЙ КОРАБЛЬ
+ * =====================================
+ */
+
+if (
+    aiDirection === "H"
+) {
+
+    if (
+        aiSearchDirection === 1
+    ) {
+
+        target = {
+            x: last.x + 1,
+            y: last.y
+        };
+
+    } else {
+
+        target = {
+            x: first.x - 1,
+            y: first.y
+        };
+    }
+}
+
+
+/*
+ * =====================================
+ * ВЕРТИКАЛЬНЫЙ КОРАБЛЬ
+ * =====================================
+ */
+
+else {
+
+    if (
+        aiSearchDirection === 1
+    ) {
+
+        target = {
+            x: last.x,
+            y: last.y + 1
+        };
+
+    } else {
+
+        target = {
+            x: first.x,
+            y: first.y - 1
+        };
+    }
+}
+
+
+/*
+ * Если выбранная клетка доступна —
+ * стреляем туда.
+ */
+
+if (
+    target &&
+    isAiCellAvailable(
+        target.x,
+        target.y
+    )
+) {
+
+    removeAiAvailableShot(
+        target.x,
+        target.y
+    );
+
+
+    return target;
+}
+
+
+/*
+ * Дальше идти нельзя.
+ *
+ * Разворачиваемся.
+ */
+
+aiSearchDirection *= -1;
+
+
+/*
+ * После разворота пробуем
+ * противоположный конец корабля.
+ */
+
+if (
+    aiDirection === "H"
+) {
+
+    if (
+        aiSearchDirection === 1
+    ) {
+
+        target = {
+            x: last.x + 1,
+            y: last.y
+        };
+
+    } else {
+
+        target = {
+            x: first.x - 1,
+            y: first.y
+        };
+    }
+
+} else {
+
+    if (
+        aiSearchDirection === 1
+    ) {
+
+        target = {
+            x: last.x,
+            y: last.y + 1
+        };
+
+    } else {
+
+        target = {
+            x: first.x,
+            y: first.y - 1
+        };
+    }
+}
+
+
+if (
+    target &&
+    isAiCellAvailable(
+        target.x,
+        target.y
+    )
+) {
+
+    removeAiAvailableShot(
+        target.x,
+        target.y
+    );
+
+
+    return target;
+}
+
+
+return null;
+
+}
+
+/* ==========================================
+ВЫБОР ВЫСТРЕЛА ИИ
+========================================== */
+
+function chooseAiShot() {
+
+/*
+ * =====================================
+ * TARGET + НАПРАВЛЕНИЕ ИЗВЕСТНО
+ * =====================================
+ */
+
+if (
+    aiMode === "TARGET" &&
+    aiDirection
+) {
+
+    const directionalShot =
+        getDirectionalShot();
+
+
+    if (
+        directionalShot
+    ) {
+
+        return directionalShot;
+    }
+}
+
+
+/*
+ * =====================================
+ * TARGET + ТОЛЬКО ОДНО ПОПАДАНИЕ
+ * =====================================
+ */
+
+if (
+    aiMode === "TARGET" &&
+    aiHits.length === 1
+) {
+
+    const targets =
+        getFirstHitTargets();
+
+
+    if (
+        targets.length > 0
+    ) {
+
+        const index =
+            Math.floor(
+                Math.random() *
+                targets.length
+            );
+
+
+        const shot =
+            targets[index];
+
+
+        removeAiAvailableShot(
+            shot.x,
+            shot.y
+        );
+
+
+        return shot;
+    }
+}
+
+
+/*
+ * =====================================
+ * HUNT
+ * =====================================
+ */
+
+return getRandomAiShot();
+
+}
+
+/* ==========================================
+ХОД ИИ
 ========================================== */
 
 function aiTurn() {
 
-    if (gameState !== "ai") {
-        return;
-    }
+if (
+    gameState !== "ai"
+) {
 
-
-    const shot = chooseAiShot();
-
-
-    /*
-     * Если по какой-то причине не нашли клетку,
-     * пробуем ещё раз через небольшой интервал.
-     */
-
-    if (!shot) {
-
-        console.warn(
-            "ИИ не смог выбрать клетку для выстрела."
-        );
-
-        gameState = "player";
-
-        statusElement.textContent =
-            "Ваш ход.";
-
-        return;
-    }
-
-
-    const result =
-        playerField.receiveShot(
-            shot.x,
-            shot.y
-        );
-
-
-    /*
-     * Защита от уже использованной клетки.
-     *
-     * Раньше именно здесь игра могла зависнуть.
-     */
-
-    if (
-        result.result === "already_shot"
-    ) {
-
-        setTimeout(
-            aiTurn,
-            100
-        );
-
-        return;
-    }
-
-
-    renderPlayerField();
-
-
-    /* ==============================
-       ПРОМАХ
-    ============================== */
-
-    if (
-        result.result === "miss"
-    ) {
-
-        statusElement.textContent =
-            "ИИ промахнулся. Ваш ход.";
-
-        gameState = "player";
-
-        return;
-    }
-
-
-    /* ==============================
-       ПОПАДАНИЕ
-    ============================== */
-
-    if (
-        result.result === "hit"
-    ) {
-
-        addAiTargets(
-            shot.x,
-            shot.y
-        );
-
-
-        statusElement.textContent =
-            "ИИ попал! Он думает над следующим выстрелом...";
-
-
-        /*
-         * ВАЖНО:
-         * ИИ получает ещё один ход,
-         * но не сразу.
-         */
-
-        setTimeout(
-            aiTurn,
-            getRandomAiDelay()
-        );
-
-        return;
-    }
-
-
-    /* ==============================
-       УНИЧТОЖЕНИЕ
-    ============================== */
-
-    if (
-        result.result === "killed"
-    ) {
-
-        /*
-         * Старые цели относятся к уже
-         * уничтоженному кораблю.
-         */
-
-        aiTargetQueue = [];
-
-
-        /*
-         * На всякий случай удаляем из списка
-         * доступных все клетки, которые игра
-         * автоматически пометила вокруг корабля.
-         */
-
-        aiAvailableShots =
-            aiAvailableShots.filter(
-                cell => {
-
-                    const state =
-                        playerField.grid[
-                            cell.y
-                        ][
-                            cell.x
-                        ];
-
-                    return (
-                        state === CELL_EMPTY ||
-                        state === CELL_SHIP
-                    );
-                }
-            );
-
-
-        if (
-            playerField.allShipsKilled()
-        ) {
-
-            endGame(false);
-
-            return;
-        }
-
-
-        statusElement.textContent =
-            "ИИ уничтожил ваш корабль!";
-
-
-        /*
-         * ИИ продолжает стрелять,
-         * но с естественной задержкой.
-         */
-
-        setTimeout(
-            aiTurn,
-            getRandomAiDelay()
-        );
-    }
+    return;
 }
 
-/* ==========================================
-   КЛИК ПО ПОЛЮ ИГРОКА
-========================================== */
 
-function handlePlayerCellClick(x, y) {
-
-    if (gameState !== "setup") {
-        return;
-    }
+const shot =
+    chooseAiShot();
 
 
-    tryPlacePlayerShip(
-        x,
-        y
+/*
+ * Теоретически этого не должно произойти.
+ */
+
+if (!shot) {
+
+    console.warn(
+        "ИИ не смог выбрать клетку."
     );
-}
-
-
-/* ==========================================
-   НАЧАЛО ИГРЫ
-========================================== */
-
-startBtn.addEventListener(
-    "click",
-    startGame
-);
-
-
-function startGame() {
-
-    if (
-        playerField.ships.length !==
-        SHIP_SIZES.length
-    ) {
-
-        statusElement.textContent =
-            "Сначала разместите весь флот.";
-
-        return;
-    }
-
-
-    enemyField.generateRandomFleet();
-
-    prepareAi();
 
 
     gameState = "player";
 
 
-    setupPanel.classList.add("hidden");
-
-
     statusElement.textContent =
-        "Ваш ход. Стреляйте по полю противника.";
+        "Ваш ход.";
 
 
-    renderPlayerField();
-    renderEnemyField();
+    return;
 }
 
 
-/* ==========================================
-   КОНЕЦ ИГРЫ
-========================================== */
-
-function endGame(playerWon) {
-
-    gameState = "gameover";
+const result =
+    playerField.receiveShot(
+        shot.x,
+        shot.y
+    );
 
 
-    if (playerWon) {
+/*
+ * Защита от повторного выстрела.
+ */
+
+if (
+    result.result ===
+    "already_shot"
+) {
+
+    removeAiAvailableShot(
+        shot.x,
+        shot.y
+    );
+
+
+    setTimeout(
+        aiTurn,
+        100
+    );
+
+
+    return;
+}
+
+
+renderPlayerField();
+
+
+/* =====================================
+   ПРОМАХ
+===================================== */
+
+if (
+    result.result === "miss"
+) {
+
+    /*
+     * Если ИИ добивал корабль
+     * и промахнулся, меняем направление.
+     *
+     * Следующий ход всё равно будет
+     * у игрока, потому что по правилам
+     * после промаха ход заканчивается.
+     */
+
+    if (
+        aiMode === "TARGET" &&
+        aiDirection
+    ) {
+
+        aiSearchDirection *= -1;
+    }
+
+
+    statusElement.textContent =
+        "ИИ промахнулся. Ваш ход.";
+
+
+    gameState = "player";
+
+
+    return;
+}
+
+
+/* =====================================
+   ПОПАДАНИЕ
+===================================== */
+
+if (
+    result.result === "hit"
+) {
+
+    aiMode = "TARGET";
+
+
+    aiHits.push({
+        x: shot.x,
+        y: shot.y
+    });
+
+
+    /*
+     * После второго попадания
+     * определяем направление.
+     */
+
+    if (
+        aiHits.length >= 2 &&
+        !aiDirection
+    ) {
+
+        aiDirection =
+            determineAiDirection();
+
+
+        aiSearchDirection = 1;
+    }
+
+
+    if (
+        aiDirection === "H"
+    ) {
 
         statusElement.textContent =
-            "🏆 Победа!";
+            "ИИ попал! Он определил горизонтальное направление.";
 
-        resultMessage.textContent =
-            "🏆 Вы уничтожили весь флот противника!";
+    } else if (
+        aiDirection === "V"
+    ) {
+
+        statusElement.textContent =
+            "ИИ попал! Он определил вертикальное направление.";
 
     } else {
 
         statusElement.textContent =
-            "💀 Поражение!";
-
-        resultMessage.textContent =
-            "💀 ИИ уничтожил ваш флот.";
+            "ИИ попал! Ищет продолжение корабля.";
     }
-
-
-    resultMessage.classList.remove(
-        "hidden"
-    );
 
 
     /*
-     * Показываем флот противника
-     * после окончания игры.
+     * Попадание даёт ИИ ещё один ход.
+     *
+     * Но с естественной случайной задержкой.
      */
 
-    renderEnemyField();
+    setTimeout(
+        aiTurn,
+        getRandomAiDelay()
+    );
+
+
+    return;
 }
 
 
+/* =====================================
+   КОРАБЛЬ УНИЧТОЖЕН
+===================================== */
+
+if (
+    result.result === "killed"
+) {
+
+    /*
+     * Проверяем победу игрока.
+     */
+
+    if (
+        playerField.allShipsKilled()
+    ) {
+
+        endGame(false);
+
+        return;
+    }
+
+
+    /*
+     * Полностью забываем
+     * уничтоженный корабль.
+     */
+
+    aiHits = [];
+
+    aiDirection = null;
+
+    aiSearchDirection = 1;
+
+    aiMode = "HUNT";
+
+
+    /*
+     * Battlefield автоматически поставил
+     * MISS вокруг уничтоженного корабля.
+     *
+     * Поэтому убираем такие клетки
+     * из списка потенциальных выстрелов ИИ.
+     */
+
+    aiAvailableShots =
+        aiAvailableShots.filter(
+            cell =>
+                isAiCellAvailable(
+                    cell.x,
+                    cell.y
+                )
+        );
+
+
+    statusElement.textContent =
+        "ИИ уничтожил ваш корабль. Ищет следующий.";
+
+
+    /*
+     * Продолжаем ход ИИ,
+     * потому что корабль был уничтожен.
+     */
+
+    setTimeout(
+        aiTurn,
+        getRandomAiDelay()
+    );
+
+
+    return;
+}
+
+}
+
 /* ==========================================
-   НОВАЯ ИГРА
+КЛИК ПО ПОЛЮ ИГРОКА
 ========================================== */
 
-newGameBtn.addEventListener(
-    "click",
-    () => {
+function handlePlayerCellClick(x, y) {
 
-        enemyField.reset();
+if (
+    gameState !== "setup"
+) {
 
-        resetSetup();
-    }
+    return;
+}
+
+
+tryPlacePlayerShip(
+    x,
+    y
+);
+
+}
+
+/* ==========================================
+НАЧАЛО ИГРЫ
+========================================== */
+
+startBtn.addEventListener(
+"click",
+startGame
+);
+
+function startGame() {
+
+if (
+    playerField.ships.length !==
+    SHIP_SIZES.length
+) {
+
+    statusElement.textContent =
+        "Сначала разместите весь флот.";
+
+
+    return;
+}
+
+
+/*
+ * Генерируем скрытый флот ИИ.
+ */
+
+enemyField.generateRandomFleet();
+
+
+/*
+ * Обнуляем память ИИ.
+ */
+
+prepareAi();
+
+
+gameState = "player";
+
+
+setupPanel.classList.add(
+    "hidden"
 );
 
 
+statusElement.textContent =
+    "Ваш ход. Стреляйте по полю противника.";
+
+
+renderPlayerField();
+
+renderEnemyField();
+
+}
+
 /* ==========================================
-   ПЕРВЫЙ ЗАПУСК
+КОНЕЦ ИГРЫ
+========================================== */
+
+function endGame(playerWon) {
+
+gameState = "gameover";
+
+
+if (playerWon) {
+
+    statusElement.textContent =
+        "🏆 Победа!";
+
+
+    resultMessage.textContent =
+        "🏆 Вы уничтожили весь флот противника.";
+
+} else {
+
+    statusElement.textContent =
+        "💀 Поражение!";
+
+
+    resultMessage.textContent =
+        "💀 ИИ уничтожил ваш флот.";
+}
+
+
+resultMessage.classList.remove(
+    "hidden"
+);
+
+
+/*
+ * После окончания игры показываем
+ * расположение кораблей противника.
+ */
+
+renderEnemyField();
+
+}
+
+/* ==========================================
+НОВАЯ ИГРА
+========================================== */
+
+newGameBtn.addEventListener(
+"click",
+() => {
+
+    enemyField.reset();
+
+    resetSetup();
+}
+
+);
+
+/* ==========================================
+ПЕРВЫЙ ЗАПУСК
 ========================================== */
 
 resetSetup();
