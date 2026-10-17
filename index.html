@@ -2,22 +2,89 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no">
+
     <title>Морской Бой TMA</title>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 860baa3 (addedf main piece of app)
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-    <div class="game-container">
-        <h1>Морской Бой</h1>
 
-        <!-- Сетка игрового поля -->
-        <div id="battlefield-ui" class="grid-field"></div>
+<div class="game-container">
 
-        <button id="regen-btn" class="btn" type="button">Перезапустить флот</button>
+    <h1>⚓ Морской Бой</h1>
+
+    <div id="game-status" class="game-status">
+        Подготовьте свой флот
     </div>
 
+<<<<<<< HEAD
     <!-- Подключаем ваш логический файл и файл управления интерфейсом -->
     <script src="javascript/main.js"></script>
     <script src="javascript/app.js"></script>
+=======
+    <!-- Панель подготовки -->
+    <div id="setup-panel" class="setup-panel">
+
+        <div class="setup-info">
+            Разместите все корабли
+        </div>
+
+        <div class="setup-controls">
+
+            <button type="button" id="rotate-btn" class="btn secondary">
+                ↻ Повернуть
+            </button>
+
+            <button type="button" id="random-btn" class="btn">
+                🎲 Случайно
+            </button>
+
+            <button type="button" id="start-btn" class="btn success" disabled>
+                ⚔ Начать игру
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- Игровые поля -->
+    <div id="battle-container" class="battle-container">
+
+        <div class="field-wrapper">
+
+            <h2>Ваш флот</h2>
+
+            <div id="player-field" class="grid-field"></div>
+
+        </div>
+
+        <div class="field-wrapper">
+
+            <h2>Флот противника</h2>
+
+            <div id="enemy-field" class="grid-field"></div>
+
+        </div>
+
+    </div>
+
+    <div id="result-message" class="result-message hidden"></div>
+
+    <button type="button" id="new-game-btn" class="btn new-game">
+        🔄 Новая игра
+    </button>
+
+</div>
+
+<script src="javascript/main.js"></script>
+<script src="javascript/app.js"></script>
+
+>>>>>>> 860baa3 (addedf main piece of app)
 </body>
 </html>
