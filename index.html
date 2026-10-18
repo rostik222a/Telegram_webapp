@@ -2,195 +2,247 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, user-scalable=no">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Морской Бой TMA</title>
-
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .mode-panel {
+            margin-bottom: 16px;
+        }
+
+        .multiplayer-mode-btn {
+            margin-top: 8px;
+        }
+
+        .multiplayer-panel {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .multiplayer-panel h2 {
+            margin: 8px 0;
+        }
+
+        .room-code-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .room-code-input {
+            flex: 1;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #555;
+            background: #2c2c2e;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .join-room-btn {
+            width: auto;
+        }
+
+        .room-code-display,
+        .players-count,
+        .multiplayer-turn,
+        .multiplayer-status {
+            margin-top: 6px;
+        }
+
+        .room-code-display {
+            margin-top: 10px;
+        }
+
+        .multiplayer-ready-btn,
+        .leave-room-btn {
+            margin-top: 8px;
+        }
+
+        .leave-room-btn {
+            background: #555;
+        }
+
+        .random-btn {
+            margin-top: 8px;
+        }
+
+        .start-btn {
+            margin-top: 8px;
+        }
+
+        .boards-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-message {
+            margin: 15px 0;
+            font-size: 20px;
+        }
+
+        #boards {
+            display: grid;
+            gap: 20px;
+        }
+
+        #result-message {
+            margin: 15px 0;
+            font-size: 20px;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="game-container">
+        <h1>Морской Бой</h1>
 
-<div class="game-container">
+        <!-- ==========================================
+             ВЫБОР РЕЖИМА
+        =========================================== -->
+        <div id="mode-panel" class="mode-panel">
+            <button id="ai-mode-btn" class="btn" type="button">
+                🤖 Играть с ИИ
+            </button>
 
-    <h1>⚓ Морской Бой</h1>
-
-    <div id="game-status" class="game-status">
-        Подготовьте свой флот
-    </div>
-
-    <!-- Панель подготовки -->
-    <div id="setup-panel" class="setup-panel">
-
-        <div class="setup-info">
-            Разместите все корабли
+            <button id="multiplayer-mode-btn" class="btn multiplayer-mode-btn" type="button">
+                👥 Мультиплеер
+            </button>
         </div>
-<section id="multiplayer-panel" class="multiplayer-panel">
 
-    <h2>Мультиплеер</h2>
+        <!-- ==========================================
+             МУЛЬТИПЛЕЕР
+        =========================================== -->
+        <section id="multiplayer-panel" class="multiplayer-panel">
 
-    <button
-        id="create-room-btn"
-        class="btn"
-        type="button"
-    >
-        Создать игру
-    </button>
+            <h2>Мультиплеер</h2>
 
-    <div class="room-join-row">
+            <button id="create-room-btn"
+                    class="btn"
+                    type="button">
+                Создать игру
+            </button>
 
-        <input
-            id="room-code-input"
-            type="text"
-            maxlength="5"
-            placeholder="Код комнаты"
-            autocomplete="off"
-        >
+            <div class="room-code-row">
+                <input
+                    id="room-code-input"
+                    class="room-code-input"
+                    type="text"
+                    maxlength="5"
+                    placeholder="Код комнаты"
+                    autocomplete="off"
+                >
 
-        <button
-            id="join-room-btn"
-            class="btn"
-            type="button"
-        >
-            Войти
+                <button id="join-room-btn"
+                        class="btn join-room-btn"
+                        type="button">
+                    Войти
+                </button>
+            </div>
+
+            <div id="room-code-display" class="room-code-display">
+                Комната не выбрана
+            </div>
+
+            <div id="players-count" class="players-count">
+                0/2
+            </div>
+
+            <div id="multiplayer-turn" class="multiplayer-turn">
+                Подключитесь к игре
+            </div>
+
+            <div id="multiplayer-status" class="multiplayer-status">
+            </div>
+
+            <button id="multiplayer-ready-btn"
+                    class="btn multiplayer-ready-btn"
+                    type="button">
+                Готов
+            </button>
+
+            <button id="leave-room-btn"
+                    class="btn leave-room-btn"
+                    type="button">
+                Выйти из комнаты
+            </button>
+        </section>
+
+        <!-- ==========================================
+             НАСТРОЙКА ФЛОТА
+        =========================================== -->
+        <div id="setup-panel">
+
+            <button id="rotate-btn"
+                    class="btn"
+                    type="button">
+                Повернуть корабль
+            </button>
+
+            <button id="random-btn"
+                    class="btn"
+                    type="button">
+                Случайная расстановка
+            </button>
+
+            <button id="start-btn"
+                    class="btn"
+                    type="button"
+                    disabled>
+                Начать игру
+            </button>
+        </div>
+
+        <p id="game-status">
+            Разместите свои корабли.
+        </p>
+
+        <!-- ==========================================
+             ИГРОВЫЕ ПОЛЯ
+        =========================================== -->
+        <div id="boards">
+
+            <div>
+                <h2>Ваше поле</h2>
+                <div id="player-field" class="grid-field"></div>
+            </div>
+
+            <div>
+                <h2>Поле противника</h2>
+                <div id="enemy-field" class="grid-field"></div>
+            </div>
+
+        </div>
+
+        <div id="result-message"
+             class="hidden">
+        </div>
+
+        <button id="new-game-btn"
+                class="btn"
+                type="button">
+            Новая игра
         </button>
-
     </div>
 
-    <div id="room-code-display">
-        Комната не выбрана
-    </div>
+    <!--
+        После размещения сервера замени URL ниже.
+        Пример:
+        https://my-battleship-server.example.com
+    -->
+    <script>
+        window.MULTIPLAYER_SERVER_URL =
+            "https://YOUR-SERVER-URL.example";
+    </script>
 
-    <div id="players-count">
-        0/2
-    </div>
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
-    <div id="multiplayer-turn">
-        Подключитесь к игре
-    </div>
+    <!-- Логика Battlefield -->
+    <script src="javascript/main.js"></script>
 
-    <div id="multiplayer-status"></div>
-
-    <button
-        id="multiplayer-ready-btn"
-        class="btn"
-        type="button"
-    >
-        Готов
-    </button>
-
-    <button
-        id="leave-room-btn"
-        class="btn"
-        type="button"
-    >
-        Выйти из комнаты
-    </button>
-
-</section>
-
-<!--
-    URL Socket.IO сервера.
-    После деплоя замени значение.
--->
-<script>
-    window.MULTIPLAYER_SERVER_URL =
-        "https://YOUR-SERVER-URL.example";
-</script>
-
-<!-- Socket.IO client -->
-<script
-    src="https://cdn.socket.io/4.8.1/socket.io.min.js">
-</script>
-
-<!-- Твой основной JS -->
-<script src="javascript/main.js"></script>
-<script src="javascript/app.js"></script>
-
-<!-- Мультиплеер -->
-<script src="javascript/multiplayer.js"></script>
-
-<script>
-    document
-        .getElementById("create-room-btn")
-        ?.addEventListener(
-            "click",
-            createMultiplayerRoom
-        );
-
-    document
-        .getElementById("join-room-btn")
-        ?.addEventListener(
-            "click",
-            joinMultiplayerRoom
-        );
-
-    document
-        .getElementById("multiplayer-ready-btn")
-        ?.addEventListener(
-            "click",
-            multiplayerReady
-        );
-
-    document
-        .getElementById("leave-room-btn")
-        ?.addEventListener(
-            "click",
-            leaveMultiplayerRoom
-        );
-
-    connectMultiplayer();
-</script>
-        <div class="setup-controls">
-
-            <button type="button" id="rotate-btn" class="btn secondary">
-                ↻ Повернуть
-            </button>
-
-            <button type="button" id="random-btn" class="btn">
-                🎲 Случайно
-            </button>
-
-            <button type="button" id="start-btn" class="btn success" disabled>
-                ⚔ Начать игру
-            </button>
-
-        </div>
-
-    </div>
-
-    <!-- Игровые поля -->
-    <div id="battle-container" class="battle-container">
-
-        <div class="field-wrapper">
-
-            <h2>Ваш флот</h2>
-
-            <div id="player-field" class="grid-field"></div>
-
-        </div>
-
-        <div class="field-wrapper">
-
-            <h2>Флот противника</h2>
-
-            <div id="enemy-field" class="grid-field"></div>
-
-        </div>
-
-    </div>
-
-    <div id="result-message" class="result-message hidden"></div>
-
-    <button type="button" id="new-game-btn" class="btn new-game">
-        🔄 Новая игра
-    </button>
-
-</div>
-
-<script src="javascript/main.js"></script>
-<script src="javascript/app.js"></script>
-
+    <!-- ИИ + UI + мультиплеер -->
+    <script src="javascript/app.js"></script>
 </body>
 </html>
