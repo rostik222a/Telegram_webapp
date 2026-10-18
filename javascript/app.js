@@ -389,6 +389,11 @@ for (
 
 function handlePlayerShot(x, y) {
 
+if (gameState === "multiplayer-player") {
+    multiplayerShoot(x, y);
+    return;
+}
+
 if (
     gameState !== "player"
 ) {
