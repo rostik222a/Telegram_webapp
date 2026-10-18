@@ -26,7 +26,122 @@
         <div class="setup-info">
             Разместите все корабли
         </div>
+<section id="multiplayer-panel" class="multiplayer-panel">
 
+    <h2>Мультиплеер</h2>
+
+    <button
+        id="create-room-btn"
+        class="btn"
+        type="button"
+    >
+        Создать игру
+    </button>
+
+    <div class="room-join-row">
+
+        <input
+            id="room-code-input"
+            type="text"
+            maxlength="5"
+            placeholder="Код комнаты"
+            autocomplete="off"
+        >
+
+        <button
+            id="join-room-btn"
+            class="btn"
+            type="button"
+        >
+            Войти
+        </button>
+
+    </div>
+
+    <div id="room-code-display">
+        Комната не выбрана
+    </div>
+
+    <div id="players-count">
+        0/2
+    </div>
+
+    <div id="multiplayer-turn">
+        Подключитесь к игре
+    </div>
+
+    <div id="multiplayer-status"></div>
+
+    <button
+        id="multiplayer-ready-btn"
+        class="btn"
+        type="button"
+    >
+        Готов
+    </button>
+
+    <button
+        id="leave-room-btn"
+        class="btn"
+        type="button"
+    >
+        Выйти из комнаты
+    </button>
+
+</section>
+
+<!--
+    URL Socket.IO сервера.
+    После деплоя замени значение.
+-->
+<script>
+    window.MULTIPLAYER_SERVER_URL =
+        "https://YOUR-SERVER-URL.example";
+</script>
+
+<!-- Socket.IO client -->
+<script
+    src="https://cdn.socket.io/4.8.1/socket.io.min.js">
+</script>
+
+<!-- Твой основной JS -->
+<script src="javascript/main.js"></script>
+<script src="javascript/app.js"></script>
+
+<!-- Мультиплеер -->
+<script src="javascript/multiplayer.js"></script>
+
+<script>
+    document
+        .getElementById("create-room-btn")
+        ?.addEventListener(
+            "click",
+            createMultiplayerRoom
+        );
+
+    document
+        .getElementById("join-room-btn")
+        ?.addEventListener(
+            "click",
+            joinMultiplayerRoom
+        );
+
+    document
+        .getElementById("multiplayer-ready-btn")
+        ?.addEventListener(
+            "click",
+            multiplayerReady
+        );
+
+    document
+        .getElementById("leave-room-btn")
+        ?.addEventListener(
+            "click",
+            leaveMultiplayerRoom
+        );
+
+    connectMultiplayer();
+</script>
         <div class="setup-controls">
 
             <button type="button" id="rotate-btn" class="btn secondary">
